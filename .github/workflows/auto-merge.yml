@@ -40,10 +40,17 @@ jobs:
           GH_TOKEN: ${{ steps.delivery-token.outputs.token }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        run: >-
-          gh pr merge "$PR_URL"
-          --repo "$GITHUB_REPOSITORY"
-          --auto
-          --squash
-          --delete-branch
-          --match-head-commit "$PR_HEAD_SHA"
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        # gh refuses --delete-branch when the base branch has a merge queue, so ask for it only
+        # where there is none. With a queue, the repository's delete-on-merge setting removes it.
+        run: |
+          args=(--repo "$GITHUB_REPOSITORY" --auto --squash --match-head-commit "$PR_HEAD_SHA")
+          queue=$(gh api graphql \
+            -f query='query($owner: String!, $name: String!, $branch: String!) {
+              repository(owner: $owner, name: $name) { mergeQueue(branch: $branch) { id } } }' \
+            -f owner="${GITHUB_REPOSITORY%%/*}" -f name="${GITHUB_REPOSITORY#*/}" -f branch="$BASE_REF" \
+            --jq '.data.repository.mergeQueue.id // ""')
+          if [ -z "$queue" ]; then
+            args+=(--delete-branch)
+          fi
+          gh pr merge "$PR_URL" "${args[@]}"
