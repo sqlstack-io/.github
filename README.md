@@ -11,8 +11,8 @@ events that invoke the organization workflow.
 
 The organization ruleset applies this workflow to Chio Labs public repositories.
 
-The workflow also runs on merge queue groups, because the ruleset requires it there; its job is
-skipped and it reports success, leaving the queue's own required checks to decide.
+The workflow also runs on merge queue groups, because the ruleset requires it there. A no-op job
+lets that run succeed, leaving the queue's own required checks to decide.
 
 Draft and fork-based pull requests are intentionally excluded. A draft is handled when it becomes
 ready for review. Product workflows remain responsible for release-specific validation, while this
