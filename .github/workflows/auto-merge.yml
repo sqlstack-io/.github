@@ -4,7 +4,7 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
   # Repositories with a merge queue require this workflow on the queue's merge groups too. There is
-  # nothing to request there, so the job is skipped and the workflow reports success.
+  # nothing to request there; the merge-group job only lets the run conclude as a success.
   merge_group:
 
 permissions:
@@ -12,6 +12,13 @@ permissions:
   pull-requests: read
 
 jobs:
+  merge-group:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Nothing to request for a merge group
+        run: echo "The merge queue's required checks decide this merge."
+
   request-auto-merge:
     if: >-
       github.event_name == 'pull_request_target' &&
