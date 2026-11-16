@@ -1,7 +1,10 @@
 name: Request Auto-Merge
 
 on:
-  pull_request_target:
+  # pull_request rather than pull_request_target: GitHub blocks pull_request_target in public
+  # repositories by default. The job checks out no pull request code and runs only for branches
+  # in the same repository, which receive secrets under pull_request.
+  pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   # Repositories with a merge queue require this workflow on the queue's merge groups too. There is
   # nothing to request there; the merge-group job only lets the run conclude as a success.
@@ -21,7 +24,7 @@ jobs:
 
   request-auto-merge:
     if: >-
-      github.event_name == 'pull_request_target' &&
+      github.event_name == 'pull_request' &&
       !github.event.pull_request.draft &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
